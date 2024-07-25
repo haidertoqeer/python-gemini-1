@@ -55,16 +55,64 @@ def get_column_names(table_name, db):
     conn.close()
     return columns
 
-# Function to generate prompt based on table name and columns
 def generate_prompt(table_name, columns):
     columns_str = ", ".join(columns)
     return [
         f"""
-You are an expert in converting English question to SQL query!
-The SQL database has the table '{table_name}' with the following columns: {columns_str}. For example, \nExample 1 - How many entries of records are present in the table? The SQL command will be something like this SELECT COUNT(*) FROM {table_name}; \nExample 2 - Tell me all the records where the column 'CLASS' has the value 'Data Science', the SQL command will be something like this SELECT * FROM {table_name} WHERE CLASS='Data Science';
-also the SQL code should not have ``` in the beginning or end and SQL word in output.
+You are an expert in converting English questions to SQL queries!
+The SQL database has a table named '{table_name}' with the following columns: {columns_str}.
+Here are some examples of how to convert English questions to SQL queries:
+
+Example 1 - How many entries of records are present in the table?
+SQL Query: SELECT COUNT(*) FROM {table_name};
+
+Example 2 - Tell me all the records where the column '<COLUMN_NAME>' has the value '<VALUE>'.
+SQL Query: SELECT * FROM {table_name} WHERE <COLUMN_NAME> = '<VALUE>';
+
+Example 3 - What is the average value of the column '<COLUMN_NAME>'?
+SQL Query: SELECT AVG(<COLUMN_NAME>) FROM {table_name};
+
+Example 4 - List all records where the column '<COLUMN_NAME1>' is '<VALUE1>' and the column '<COLUMN_NAME2>' is greater than <VALUE2>.
+SQL Query: SELECT * FROM {table_name} WHERE <COLUMN_NAME1> = '<VALUE1>' AND <COLUMN_NAME2> > <VALUE2>;
+
+Example 5 - Get the sum of the column '<COLUMN_NAME>' for records where '<COLUMN_NAME2>' is '<VALUE>'.
+SQL Query: SELECT SUM(<COLUMN_NAME>) FROM {table_name} WHERE <COLUMN_NAME2> = '<VALUE>';
+
+Example 6 - Retrieve the top <N> records with the highest values in the column '<COLUMN_NAME>'.
+SQL Query: SELECT * FROM {table_name} ORDER BY <COLUMN_NAME> DESC LIMIT <N>;
+
+Example 7 - Find the maximum value in the column '<COLUMN_NAME>'.
+SQL Query: SELECT MAX(<COLUMN_NAME>) FROM {table_name};
+
+Example 8 - Show the count of records grouped by the column '<COLUMN_NAME>'.
+SQL Query: SELECT <COLUMN_NAME>, COUNT(*) FROM {table_name} GROUP BY <COLUMN_NAME>;
+
+Example 9 - Display records where the column '<COLUMN_NAME>' is between '<VALUE1>' and '<VALUE2>'.
+SQL Query: SELECT * FROM {table_name} WHERE <COLUMN_NAME> BETWEEN '<VALUE1>' AND '<VALUE2>';
+
+Example 10 - Fetch all distinct values in the column '<COLUMN_NAME>'.
+SQL Query: SELECT DISTINCT <COLUMN_NAME> FROM {table_name};
+
+Example 11 - List records where the '<COLUMN_NAME1>' is greater than <VALUE1>, the '<COLUMN_NAME2>' is '<VALUE2>', and order by '<COLUMN_NAME3>' in descending order.
+SQL Query: SELECT * FROM {table_name} WHERE <COLUMN_NAME1> > <VALUE1> AND <COLUMN_NAME2> = '<VALUE2>' ORDER BY <COLUMN_NAME3> DESC;
+
+Example 12 - Calculate the average '<COLUMN_NAME1>' and the total '<COLUMN_NAME2>' for each '<COLUMN_NAME3>' where '<COLUMN_NAME4>' is '<VALUE>'.
+SQL Query: SELECT <COLUMN_NAME3>, AVG(<COLUMN_NAME1>) AS Avg<COLUMN_NAME1>, SUM(<COLUMN_NAME2>) AS Total<COLUMN_NAME2> FROM {table_name} WHERE <COLUMN_NAME4> = '<VALUE>' GROUP BY <COLUMN_NAME3>;
+
+Example 13 - Retrieve records where '<COLUMN_NAME1>' is between <VALUE1> and <VALUE2>, '<COLUMN_NAME2>' is '<VALUE3>', and '<COLUMN_NAME3>' is either '<VALUE4>' or '<VALUE5>'.
+SQL Query: SELECT * FROM {table_name} WHERE <COLUMN_NAME1> BETWEEN <VALUE1> AND <VALUE2> AND <COLUMN_NAME2> = '<VALUE3>' AND <COLUMN_NAME3> IN ('<VALUE4>', '<VALUE5>');
+
+Example 14 - Show the top <N> '<COLUMN_NAME1>' with the highest average '<COLUMN_NAME2>', including the count of records in each '<COLUMN_NAME1>'.
+SQL Query: SELECT <COLUMN_NAME1>, AVG(<COLUMN_NAME2>) AS Avg<COLUMN_NAME2>, COUNT(*) AS RecordCount FROM {table_name} GROUP BY <COLUMN_NAME1> ORDER BY Avg<COLUMN_NAME2> DESC LIMIT <N>;
+
+Example 15 - Find all records where the '<COLUMN_NAME1>' is greater than the average '<COLUMN_NAME1>' and the '<COLUMN_NAME2>' is less than <VALUE>.
+SQL Query: SELECT * FROM {table_name} WHERE <COLUMN_NAME1> > (SELECT AVG(<COLUMN_NAME1>) FROM {table_name}) AND <COLUMN_NAME2> < <VALUE>;
+
+The SQL code should not have ``` in the beginning or end and should not include the word 'SQL' in the output. Ensure that the generated SQL query is accurate and matches the requested parameters precisely.
 """
     ]
+
+
 
 # Function to list all .db files in the root directory
 def list_databases(root_dir):
