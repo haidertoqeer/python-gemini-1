@@ -64,51 +64,87 @@ The SQL database has a table named '{table_name}' with the following columns: {c
 Here are some examples of how to convert English questions to SQL queries:
 
 Example 1 - How many entries of records are present in the table?
-SQL Query: SELECT COUNT(*) FROM {table_name};
+Query: SELECT COUNT(*) FROM {table_name};
 
 Example 2 - Tell me all the records where the column '<COLUMN_NAME>' has the value '<VALUE>'.
-SQL Query: SELECT * FROM {table_name} WHERE <COLUMN_NAME> = '<VALUE>';
+Query: SELECT * FROM {table_name} WHERE <COLUMN_NAME> = '<VALUE>';
 
 Example 3 - What is the average value of the column '<COLUMN_NAME>'?
-SQL Query: SELECT AVG(<COLUMN_NAME>) FROM {table_name};
+Query: SELECT AVG(<COLUMN_NAME>) FROM {table_name};
 
 Example 4 - List all records where the column '<COLUMN_NAME1>' is '<VALUE1>' and the column '<COLUMN_NAME2>' is greater than <VALUE2>.
-SQL Query: SELECT * FROM {table_name} WHERE <COLUMN_NAME1> = '<VALUE1>' AND <COLUMN_NAME2> > <VALUE2>;
+Query: SELECT * FROM {table_name} WHERE <COLUMN_NAME1> = '<VALUE1>' AND <COLUMN_NAME2> > <VALUE2>;
 
 Example 5 - Get the sum of the column '<COLUMN_NAME>' for records where '<COLUMN_NAME2>' is '<VALUE>'.
-SQL Query: SELECT SUM(<COLUMN_NAME>) FROM {table_name} WHERE <COLUMN_NAME2> = '<VALUE>';
+Query: SELECT SUM(<COLUMN_NAME>) FROM {table_name} WHERE <COLUMN_NAME2> = '<VALUE>';
 
 Example 6 - Retrieve the top <N> records with the highest values in the column '<COLUMN_NAME>'.
-SQL Query: SELECT * FROM {table_name} ORDER BY <COLUMN_NAME> DESC LIMIT <N>;
+Query: SELECT * FROM {table_name} ORDER BY <COLUMN_NAME> DESC LIMIT <N>;
 
 Example 7 - Find the maximum value in the column '<COLUMN_NAME>'.
-SQL Query: SELECT MAX(<COLUMN_NAME>) FROM {table_name};
+Query: SELECT MAX(<COLUMN_NAME>) FROM {table_name};
 
 Example 8 - Show the count of records grouped by the column '<COLUMN_NAME>'.
-SQL Query: SELECT <COLUMN_NAME>, COUNT(*) FROM {table_name} GROUP BY <COLUMN_NAME>;
+Query: SELECT <COLUMN_NAME>, COUNT(*) FROM {table_name} GROUP BY <COLUMN_NAME>;
 
 Example 9 - Display records where the column '<COLUMN_NAME>' is between '<VALUE1>' and '<VALUE2>'.
-SQL Query: SELECT * FROM {table_name} WHERE <COLUMN_NAME> BETWEEN '<VALUE1>' AND '<VALUE2>';
+Query: SELECT * FROM {table_name} WHERE <COLUMN_NAME> BETWEEN '<VALUE1>' AND '<VALUE2>';
 
 Example 10 - Fetch all distinct values in the column '<COLUMN_NAME>'.
-SQL Query: SELECT DISTINCT <COLUMN_NAME> FROM {table_name};
+Query: SELECT DISTINCT <COLUMN_NAME> FROM {table_name};
 
 Example 11 - List records where the '<COLUMN_NAME1>' is greater than <VALUE1>, the '<COLUMN_NAME2>' is '<VALUE2>', and order by '<COLUMN_NAME3>' in descending order.
-SQL Query: SELECT * FROM {table_name} WHERE <COLUMN_NAME1> > <VALUE1> AND <COLUMN_NAME2> = '<VALUE2>' ORDER BY <COLUMN_NAME3> DESC;
+Query: SELECT * FROM {table_name} WHERE <COLUMN_NAME1> > <VALUE1> AND <COLUMN_NAME2> = '<VALUE2>' ORDER BY <COLUMN_NAME3> DESC;
 
 Example 12 - Calculate the average '<COLUMN_NAME1>' and the total '<COLUMN_NAME2>' for each '<COLUMN_NAME3>' where '<COLUMN_NAME4>' is '<VALUE>'.
-SQL Query: SELECT <COLUMN_NAME3>, AVG(<COLUMN_NAME1>) AS Avg<COLUMN_NAME1>, SUM(<COLUMN_NAME2>) AS Total<COLUMN_NAME2> FROM {table_name} WHERE <COLUMN_NAME4> = '<VALUE>' GROUP BY <COLUMN_NAME3>;
+Query: SELECT <COLUMN_NAME3>, AVG(<COLUMN_NAME1>) AS Avg<COLUMN_NAME1>, SUM(<COLUMN_NAME2>) AS Total<COLUMN_NAME2> FROM {table_name} WHERE <COLUMN_NAME4> = '<VALUE>' GROUP BY <COLUMN_NAME3>;
 
 Example 13 - Retrieve records where '<COLUMN_NAME1>' is between <VALUE1> and <VALUE2>, '<COLUMN_NAME2>' is '<VALUE3>', and '<COLUMN_NAME3>' is either '<VALUE4>' or '<VALUE5>'.
-SQL Query: SELECT * FROM {table_name} WHERE <COLUMN_NAME1> BETWEEN <VALUE1> AND <VALUE2> AND <COLUMN_NAME2> = '<VALUE3>' AND <COLUMN_NAME3> IN ('<VALUE4>', '<VALUE5>');
+Query: SELECT * FROM {table_name} WHERE <COLUMN_NAME1> BETWEEN <VALUE1> AND <VALUE2> AND <COLUMN_NAME2> = '<VALUE3>' AND <COLUMN_NAME3> IN ('<VALUE4>', '<VALUE5>');
 
 Example 14 - Show the top <N> '<COLUMN_NAME1>' with the highest average '<COLUMN_NAME2>', including the count of records in each '<COLUMN_NAME1>'.
-SQL Query: SELECT <COLUMN_NAME1>, AVG(<COLUMN_NAME2>) AS Avg<COLUMN_NAME2>, COUNT(*) AS RecordCount FROM {table_name} GROUP BY <COLUMN_NAME1> ORDER BY Avg<COLUMN_NAME2> DESC LIMIT <N>;
+Query: SELECT <COLUMN_NAME1>, AVG(<COLUMN_NAME2>) AS Avg<COLUMN_NAME2>, COUNT(*) AS RecordCount FROM {table_name} GROUP BY <COLUMN_NAME1> ORDER BY Avg<COLUMN_NAME2> DESC LIMIT <N>;
 
 Example 15 - Find all records where the '<COLUMN_NAME1>' is greater than the average '<COLUMN_NAME1>' and the '<COLUMN_NAME2>' is less than <VALUE>.
-SQL Query: SELECT * FROM {table_name} WHERE <COLUMN_NAME1> > (SELECT AVG(<COLUMN_NAME1>) FROM {table_name}) AND <COLUMN_NAME2> < <VALUE>;
+Query: SELECT * FROM {table_name} WHERE <COLUMN_NAME1> > (SELECT AVG(<COLUMN_NAME1>) FROM {table_name}) AND <COLUMN_NAME2> < <VALUE>;
 
-The SQL code should not have ``` in the beginning or end and should not include the word 'SQL' in the output. Ensure that the generated SQL query is accurate and matches the requested parameters precisely.
+Example 16 - Fetch records where the '<COLUMN_NAME1>' is not null and '<COLUMN_NAME2>' does not contain '<VALUE>'.
+Query: SELECT * FROM {table_name} WHERE <COLUMN_NAME1> IS NOT NULL AND <COLUMN_NAME2> NOT LIKE '%<VALUE>%';
+
+Example 17 - List records where '<COLUMN_NAME1>' is '<VALUE1>' and either '<COLUMN_NAME2>' is '<VALUE2>' or '<COLUMN_NAME3>' is less than '<VALUE3>'.
+Query: SELECT * FROM {table_name} WHERE <COLUMN_NAME1> = '<VALUE1>' AND (<COLUMN_NAME2> = '<VALUE2>' OR <COLUMN_NAME3> < <VALUE3>);
+
+Example 18 - Get the total count of records, the average value of '<COLUMN_NAME1>', and the maximum '<COLUMN_NAME2>' for records where '<COLUMN_NAME3>' is '<VALUE>'.
+Query: SELECT COUNT(*), AVG(<COLUMN_NAME1>), MAX(<COLUMN_NAME2>) FROM {table_name} WHERE <COLUMN_NAME3> = '<VALUE>';
+
+Example 19 - Find records where the '<COLUMN_NAME1>' is within the top 10% of its values.
+Query: SELECT * FROM {table_name} WHERE <COLUMN_NAME1> > (SELECT PERCENTILE_CONT(0.9) WITHIN GROUP (ORDER BY <COLUMN_NAME1>) FROM {table_name});
+
+Example 20 - List the number of distinct '<COLUMN_NAME>' values along with their frequencies, sorted by frequency in descending order.
+Query: SELECT <COLUMN_NAME>, COUNT(*) AS Frequency FROM {table_name} GROUP BY <COLUMN_NAME> ORDER BY Frequency DESC;
+
+Example 21 - Retrieve records where '<COLUMN_NAME1>' is in the top 5 values, and '<COLUMN_NAME2>' is not null, ordered by '<COLUMN_NAME3>'.
+Query: SELECT * FROM {table_name} WHERE <COLUMN_NAME1> IN (SELECT <COLUMN_NAME1> FROM {table_name} ORDER BY <COLUMN_NAME1> DESC LIMIT 5) AND <COLUMN_NAME2> IS NOT NULL ORDER BY <COLUMN_NAME3>;
+
+Example 22 - Find records where the '<COLUMN_NAME1>' value is within the range of the minimum and maximum values of '<COLUMN_NAME2>' grouped by '<COLUMN_NAME3>'.
+Query: SELECT * FROM {table_name} WHERE <COLUMN_NAME1> BETWEEN (SELECT MIN(<COLUMN_NAME2>) FROM {table_name} GROUP BY <COLUMN_NAME3>) AND (SELECT MAX(<COLUMN_NAME2>) FROM {table_name} GROUP BY <COLUMN_NAME3>);
+
+Example 23 - Fetch records where '<COLUMN_NAME1>' is equal to '<VALUE1>' and '<COLUMN_NAME2>' is within the last 7 days from today.
+Query: SELECT * FROM {table_name} WHERE <COLUMN_NAME1> = '<VALUE1>' AND <COLUMN_NAME2> >= DATE_SUB(CURDATE(), INTERVAL 7 DAY);
+
+Example 24 - Show the average '<COLUMN_NAME1>', sum of '<COLUMN_NAME2>', and count of '<COLUMN_NAME3>' for records grouped by '<COLUMN_NAME4>' having count greater than 5.
+Query: SELECT <COLUMN_NAME4>, AVG(<COLUMN_NAME1>), SUM(<COLUMN_NAME2>), COUNT(<COLUMN_NAME3>) FROM {table_name} GROUP BY <COLUMN_NAME4> HAVING COUNT(<COLUMN_NAME3>) > 5;
+
+Example 25 - Calculate the price of one item given the total sales and total reviews, rounded to two decimal places.
+Query: SELECT ROUND(SUM(total_sale) / SUM(total_review), 2) AS item_price FROM {table_name};
+
+Example 26 - Give me all records which month have only one record.
+Query: SELECT * FROM {table_name} WHERE EXTRACT(MONTH FROM <DATE_COLUMN>) IN (SELECT month FROM (SELECT EXTRACT(MONTH FROM <DATE_COLUMN>) AS month, COUNT(*) AS record_count FROM {table_name} GROUP BY month) AS monthly_counts WHERE record_count = 1);
+
+Example 27 - Give all records and add a new column for single unit price (<REVENUE_COLUMN> / <UNITS_SOLD_COLUMN>) rounded to two decimal places.
+Query: SELECT *, ROUND(<REVENUE_COLUMN> / <UNITS_SOLD_COLUMN>, 2) AS Single_Unit_Price FROM {table_name};
+
+The SQL code should not have ``` in the beginning or end and should not include the word 'Query' in the output. Ensure that the generated SQL query is accurate and matches the requested parameters precisely.
 """
     ]
 
