@@ -29,7 +29,13 @@ def read_sql_query(sql, db):
         st.error(f"Error executing query: {e}")
         return [], []
     conn.close()
-    return rows, columns
+    
+    # Ensure rounding precision is maintained
+    df = pd.DataFrame(rows, columns=columns)
+    numeric_cols = df.select_dtypes(include='number').columns
+    df[numeric_cols] = df[numeric_cols].round(2)
+    
+    return df
 
 # Function to create a database from a DataFrame
 def create_database_from_df(df, db_name):
@@ -144,6 +150,19 @@ Query: SELECT * FROM {table_name} WHERE EXTRACT(MONTH FROM <DATE_COLUMN>) IN (SE
 Example 27 - Give all records and add a new column for single unit price (<REVENUE_COLUMN> / <UNITS_SOLD_COLUMN>) rounded to two decimal places.
 Query: SELECT *, ROUND(<REVENUE_COLUMN> / <UNITS_SOLD_COLUMN>, 2) AS Single_Unit_Price FROM {table_name};
 
+Example 28 - Give all records and add a column showing the result of a calculation (e.g., <COLUMN_NAME1> divided by <COLUMN_NAME2>) rounded to two decimal places.
+Query: SELECT *, ROUND(<COLUMN_NAME1> / <COLUMN_NAME2>, 2) AS Calculated_Column FROM {table_name};
+
+Example 29 - Give all records and add a column showing the result of a mathematical operation (e.g., <COLUMN_NAME> multiplied by <VALUE>) rounded to two decimal places.
+Query: SELECT *, ROUND(<COLUMN_NAME> * <VALUE>, 2) AS Calculated_Column FROM {table_name};
+
+Example 30 - Give all records and add a column showing the monthly salary (salary divided by 12) rounded to two decimal places.
+Query: SELECT *, ROUND(salary / 12, 2) AS Monthly_Salary FROM {table_name};
+
+Example 31 - Add a new column showing the total price (quantity * unit_price) rounded to two decimal places.
+Query: SELECT *, ROUND(quantity * unit_price, 2) AS Total_Price FROM {table_name};
+
+
 The SQL code should not have ``` in the beginning or end and should not include the word 'Query' in the output. Ensure that the generated SQL query is accurate and matches the requested parameters precisely.
 """
     ]
@@ -160,6 +179,7 @@ def list_databases(root_dir):
 # Streamlit APP
 st.set_page_config(page_title="I can Retrieve Any SQL query")
 st.header("Gemini App to Retrieve SQL Data")
+
 
 # List available databases dynamically
 available_databases = list_databases(".")
@@ -185,6 +205,7 @@ selected_db = available_databases[selected_db_name]
 table_names = get_table_names(selected_db)
 selected_table = st.selectbox("Select Table", table_names)
 
+
 # Get column names for the selected table
 columns = get_column_names(selected_table, selected_db)
 
@@ -202,11 +223,10 @@ if submit:
         print(f"Generated SQL query: {response}")
         
         # Retrieve data from the SQL database
-        data, columns = read_sql_query(response, selected_db)
+        df = read_sql_query(response, selected_db)
 
     st.subheader("The Response is:")
-    if data:
-        df = pd.DataFrame(data, columns=columns)
+    if not df.empty:
         st.table(df)
     else:
         st.write("No data found for the query.")
