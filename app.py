@@ -27,7 +27,7 @@ def read_sql_query(sql, db):
         columns = [description[0] for description in cur.description]  # Get column names
     except sqlite3.OperationalError as e:
         st.error(f"Error executing query: {e}")
-        return [], []
+        return pd.DataFrame()
     conn.close()
     
     # Ensure rounding precision is maintained
@@ -123,8 +123,8 @@ Query: SELECT * FROM {table_name} WHERE <COLUMN_NAME1> = '<VALUE1>' AND (<COLUMN
 Example 18 - Get the total count of records, the average value of '<COLUMN_NAME1>', and the maximum '<COLUMN_NAME2>' for records where '<COLUMN_NAME3>' is '<VALUE>'.
 Query: SELECT COUNT(*), AVG(<COLUMN_NAME1>), MAX(<COLUMN_NAME2>) FROM {table_name} WHERE <COLUMN_NAME3> = '<VALUE>';
 
-Example 19 - Find records where the '<COLUMN_NAME1>' is within the top 10% of its values.
-Query: SELECT * FROM {table_name} WHERE <COLUMN_NAME1> > (SELECT PERCENTILE_CONT(0.9) WITHIN GROUP (ORDER BY <COLUMN_NAME1>) FROM {table_name});
+Example 19 - Find records where the '<COLUMN_NAME1>' value is within the range of the minimum and maximum values of '<COLUMN_NAME2>' grouped by '<COLUMN_NAME3>'.
+Query: SELECT * FROM {table_name} WHERE <COLUMN_NAME1> BETWEEN (SELECT MIN(<COLUMN_NAME2>) FROM {table_name} GROUP BY <COLUMN_NAME3>) AND (SELECT MAX(<COLUMN_NAME2>) FROM {table_name} GROUP BY <COLUMN_NAME3>);
 
 Example 20 - List the number of distinct '<COLUMN_NAME>' values along with their frequencies, sorted by frequency in descending order.
 Query: SELECT <COLUMN_NAME>, COUNT(*) AS Frequency FROM {table_name} GROUP BY <COLUMN_NAME> ORDER BY Frequency DESC;
@@ -162,28 +162,54 @@ Query: SELECT *, ROUND(salary / 12, 2) AS Monthly_Salary FROM {table_name};
 Example 31 - Add a new column showing the total price (quantity * unit_price) rounded to two decimal places.
 Query: SELECT *, ROUND(quantity * unit_price, 2) AS Total_Price FROM {table_name};
 
-
 The SQL code should not have ``` in the beginning or end and should not include the word 'Query' in the output. Ensure that the generated SQL query is accurate and matches the requested parameters precisely.
 """
     ]
 
-
-
-# Function to list all .db files in the root directory
 def list_databases(root_dir):
     return {
         os.path.splitext(file)[0]: os.path.join(root_dir, file)
         for file in os.listdir(root_dir) if file.endswith(".db")
     }
 
+def delete_database(db_path):
+    os.remove(db_path)
+
 # Streamlit APP
 st.set_page_config(page_title="I can Retrieve Any SQL query")
 st.header("Gemini App to Retrieve SQL Data")
 
+# Function to refresh available databases
+def refresh_available_databases():
+    return list_databases(".")
+
+# Initial load of available databases
+available_databases = refresh_available_databases()
 
 # List available databases dynamically
 available_databases = list_databases(".")
 
+# Add functionality to delete databases
+if len(available_databases) > 1:
+    delete_db_name = st.selectbox("Select a database to delete", list(available_databases.keys()), key="delete_db_select")
+    
+    # Display confirmation input and button only after a database is selected
+    if delete_db_name:
+        st.write(f"You have selected '{delete_db_name}' for deletion.")
+        confirmation_input = st.text_input("Type 'DELETE' to confirm:", key="confirmation_input")
+        confirm_button = st.button("Confirm Deletion")
+
+        if confirm_button:
+            if confirmation_input == "DELETE":
+                delete_database(available_databases[delete_db_name])
+                available_databases = refresh_available_databases()  # Refresh the database list
+                st.success(f"Database '{delete_db_name}' deleted successfully!")
+            else:
+                st.warning("Incorrect confirmation text. Please type 'DELETE' to confirm.")
+else:
+    st.warning("At least one database must remain. Cannot delete the only database.")
+
+# Continue with the rest of your Streamlit app
 uploaded_file = st.file_uploader("Upload an XLSX or CSV file", type=["xlsx", "csv"])
 
 if uploaded_file:
@@ -194,7 +220,7 @@ if uploaded_file:
     
     uploaded_db_name = uploaded_file.name.split(".")[0] + ".db"
     create_database_from_df(df, uploaded_db_name)
-    available_databases[uploaded_file.name.split(".")[0]] = uploaded_db_name
+    available_databases = refresh_available_databases()  # Refresh the database list
     st.success(f"Database '{uploaded_file.name.split('.')[0]}' created successfully!")
 
 # Select database
@@ -204,7 +230,6 @@ selected_db = available_databases[selected_db_name]
 # Get table names from the selected database
 table_names = get_table_names(selected_db)
 selected_table = st.selectbox("Select Table", table_names)
-
 
 # Get column names for the selected table
 columns = get_column_names(selected_table, selected_db)
@@ -219,8 +244,16 @@ if submit:
         prompt = generate_prompt(selected_table, columns)
         response = get_gemini_response(question, prompt)
         
-        # Print the generated SQL query for debugging
-        print(f"Generated SQL query: {response}")
+        # Display the generated SQL query in a styled box
+        st.markdown(
+            f"""
+            <div style="background-color: #f0f0f0; padding: 15px; border-radius: 8px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
+                <strong>Generated SQL Query:</strong>
+                <pre style="background-color: #ffffff; padding: 10px; border-radius: 4px; overflow-x: auto;">{response}</pre>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
         
         # Retrieve data from the SQL database
         df = read_sql_query(response, selected_db)
