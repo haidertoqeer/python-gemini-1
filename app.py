@@ -21,14 +21,17 @@ def read_sql_query(sql, db):
     conn = sqlite3.connect(db)
     cur = conn.cursor()
     try:
-        print(f"Executing SQL query: {sql}")  # Print SQL query for debugging
-        cur.execute(sql)
+        # Clean SQL query from markdown or any unwanted characters
+        sql_clean = sql.replace("```sql", "").replace("```", "").strip()
+        print(f"Executing SQL query: {sql_clean}")  # Print SQL query for debugging
+        cur.execute(sql_clean)
         rows = cur.fetchall()
         columns = [description[0] for description in cur.description]  # Get column names
     except sqlite3.OperationalError as e:
         st.error(f"Error executing query: {e}")
         return pd.DataFrame()
-    conn.close()
+    finally:
+        conn.close()
     
     # Ensure rounding precision is maintained
     df = pd.DataFrame(rows, columns=columns)
@@ -60,6 +63,7 @@ def get_column_names(table_name, db):
     columns = [row[1] for row in cur.fetchall()]
     conn.close()
     return columns
+
 
 def generate_prompt(table_name, columns):
     columns_str = ", ".join(columns)
@@ -176,8 +180,8 @@ def delete_database(db_path):
     os.remove(db_path)
 
 # Streamlit APP
-st.set_page_config(page_title="I can Retrieve Any SQL query")
-st.header("Gemini App to Retrieve SQL Data")
+st.set_page_config(page_title="Gemini Application for Translating Natural Language Queries into SQL and Retrieving Data Using Python and Streamlit | haidertoqeer")
+st.header("Natural Language to Retrieve SQL Data")
 
 # Function to refresh available databases
 def refresh_available_databases():
@@ -201,9 +205,12 @@ if len(available_databases) > 1:
 
         if confirm_button:
             if confirmation_input == "DELETE":
-                delete_database(available_databases[delete_db_name])
-                available_databases = refresh_available_databases()  # Refresh the database list
-                st.success(f"Database '{delete_db_name}' deleted successfully!")
+                try:
+                    delete_database(available_databases[delete_db_name])
+                    available_databases = refresh_available_databases()  # Refresh the database list
+                    st.success(f"Database '{delete_db_name}' deleted successfully!")
+                except Exception as e:
+                    st.error(f"Error deleting database: {e}")
             else:
                 st.warning("Incorrect confirmation text. Please type 'DELETE' to confirm.")
 else:
@@ -213,53 +220,78 @@ else:
 uploaded_file = st.file_uploader("Upload an XLSX or CSV file", type=["xlsx", "csv"])
 
 if uploaded_file:
-    if uploaded_file.name.endswith(".xlsx"):
-        df = pd.read_excel(uploaded_file)
-    elif uploaded_file.name.endswith(".csv"):
-        df = pd.read_csv(uploaded_file)
-    
-    uploaded_db_name = uploaded_file.name.split(".")[0] + ".db"
-    create_database_from_df(df, uploaded_db_name)
-    available_databases = refresh_available_databases()  # Refresh the database list
-    st.success(f"Database '{uploaded_file.name.split('.')[0]}' created successfully!")
+    try:
+        if uploaded_file.name.endswith(".xlsx"):
+            df = pd.read_excel(uploaded_file)
+        elif uploaded_file.name.endswith(".csv"):
+            df = pd.read_csv(uploaded_file)
+        
+        uploaded_db_name = uploaded_file.name.split(".")[0] + ".db"
+        create_database_from_df(df, uploaded_db_name)
+        available_databases = refresh_available_databases()  # Refresh the database list
+        st.success(f"Database '{uploaded_file.name.split('.')[0]}' created successfully!")
+    except Exception as e:
+        st.error(f"Error uploading file: {e}")
 
 # Select database
 selected_db_name = st.selectbox("Select Database", list(available_databases.keys()))
 selected_db = available_databases[selected_db_name]
 
 # Get table names from the selected database
-table_names = get_table_names(selected_db)
-selected_table = st.selectbox("Select Table", table_names)
+try:
+    table_names = get_table_names(selected_db)
+    if table_names:
+        selected_table = st.selectbox("Select Table", table_names)
+    else:
+        st.error("No tables found in the selected database.")
+except Exception as e:
+    st.error(f"Error retrieving table names: {e}")
 
 # Get column names for the selected table
-columns = get_column_names(selected_table, selected_db)
+try:
+    if selected_table:
+        columns = get_column_names(selected_table, selected_db)
+except Exception as e:
+    st.error(f"Error retrieving column names: {e}")
 
 question = st.text_input("Your Question:", key="input")
 
 submit = st.button("Submit question")
 
 if submit:
-    with st.spinner("Generating SQL query and retrieving data..."):
-        # Generate prompt and get SQL query
-        prompt = generate_prompt(selected_table, columns)
-        response = get_gemini_response(question, prompt)
-        
-        # Display the generated SQL query in a styled box
-        st.markdown(
-            f"""
-            <div style="background-color: #f0f0f0; color: #000000; padding: 15px; border-radius: 8px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
-                <strong>Generated SQL Query:</strong>
-                <pre style="background-color: #ffffff; padding: 10px; border-radius: 4px; overflow-x: auto;">{response}</pre>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-        
-        # Retrieve data from the SQL database
-        df = read_sql_query(response, selected_db)
-
-    st.subheader("The Response is:")
-    if not df.empty:
-        st.table(df)
+    # Check if the question is not empty and contains meaningful content
+    if not question.strip():
+        st.warning("Please enter a question.")
+    elif len(question.split()) < 3:  # Check if the question is too short
+        st.warning("Please enter a more detailed question.")
     else:
-        st.write("No data found for the query.")
+        with st.spinner("Generating SQL query and retrieving data..."):
+            try:
+                # Generate prompt and get SQL query
+                prompt = generate_prompt(selected_table, columns)
+                response = get_gemini_response(question, prompt)
+                
+                # Clean SQL query from markdown or any unwanted characters
+                sql_clean = response.replace("```sql", "").replace("```", "").strip()
+                
+                # Display the generated SQL query in a styled box
+                st.markdown(
+                    f"""
+                    <div style="background-color: #f0f0f0; color: #000000; padding: 15px; border-radius: 8px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
+                        <strong>Generated SQL Query:</strong>
+                        <pre style="background-color: #ffffff; padding: 10px; border-radius: 4px; overflow-x: auto;">{sql_clean}</pre>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+                
+                # Retrieve data from the SQL database
+                df = read_sql_query(sql_clean, selected_db)
+
+                st.subheader("The Response is:")
+                if not df.empty:
+                    st.table(df)
+                else:
+                    st.write("No data found for the query.")
+            except Exception as e:
+                st.error(f"Error generating SQL query or retrieving data: {e}")
