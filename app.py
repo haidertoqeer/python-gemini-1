@@ -7,6 +7,11 @@ import sqlite3
 import pandas as pd
 import google.generativeai as genai
 
+try:
+    import openpyxl
+except ImportError:
+    st.error("Missing optional dependency 'openpyxl'. Please install it using `pip install openpyxl`.")
+
 # Configure our API Key
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
