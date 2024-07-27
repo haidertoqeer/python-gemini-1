@@ -247,7 +247,7 @@ if submit:
         # Display the generated SQL query in a styled box
         st.markdown(
             f"""
-            <div style="background-color: #f0f0f0; padding: 15px; border-radius: 8px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
+            <div style="background-color: #f0f0f0; color: #000000; padding: 15px; border-radius: 8px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
                 <strong>Generated SQL Query:</strong>
                 <pre style="background-color: #ffffff; padding: 10px; border-radius: 4px; overflow-x: auto;">{response}</pre>
             </div>
