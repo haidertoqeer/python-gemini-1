@@ -265,33 +265,40 @@ if submit:
     elif len(question.split()) < 3:  # Check if the question is too short
         st.warning("Please enter a more detailed question.")
     else:
-        with st.spinner("Generating SQL query and retrieving data..."):
-            try:
-                # Generate prompt and get SQL query
-                prompt = generate_prompt(selected_table, columns)
-                response = get_gemini_response(question, prompt)
-                
-                # Clean SQL query from markdown or any unwanted characters
-                sql_clean = response.replace("```sql", "").replace("```", "").strip()
-                
-                # Display the generated SQL query in a styled box
-                st.markdown(
-                    f"""
-                    <div style="background-color: #f0f0f0; color: #000000; padding: 15px; border-radius: 8px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
-                        <strong>Generated SQL Query:</strong>
-                        <pre style="background-color: #ffffff; padding: 10px; border-radius: 4px; overflow-x: auto;">{sql_clean}</pre>
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
-                
-                # Retrieve data from the SQL database
-                df = read_sql_query(sql_clean, selected_db)
+        # Check for specific phrases and generate default query if applicable
+        if "get all results" in question.lower() or "show all" in question.lower():
+            sql_query = f"SELECT * FROM {selected_table};"
+        else:
+            with st.spinner("Generating SQL query and retrieving data..."):
+                try:
+                    # Generate prompt and get SQL query
+                    prompt = generate_prompt(selected_table, columns)
+                    response = get_gemini_response(question, prompt)
+                    
+                    # Clean SQL query from markdown or any unwanted characters
+                    sql_query = response.replace("```sql", "").replace("```", "").strip()
+                    
+                except Exception as e:
+                    st.error(f"Error generating SQL query: {e}")
+                    sql_query = ""
+        
+        # Display the generated SQL query in a styled box
+        st.markdown(
+            f"""
+            <div style="background-color: #f0f0f0; color: #000000; padding: 15px; border-radius: 8px; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
+                <strong>Generated SQL Query:</strong>
+                <pre style="background-color: #ffffff; padding: 10px; border-radius: 4px; overflow-x: auto;">{sql_query}</pre>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        
+        # Retrieve data from the SQL database
+        if sql_query:
+            df = read_sql_query(sql_query, selected_db)
 
-                st.subheader("The Response is:")
-                if not df.empty:
-                    st.table(df)
-                else:
-                    st.write("No data found for the query.")
-            except Exception as e:
-                st.error(f"Error generating SQL query or retrieving data: {e}")
+            st.subheader("The Response is:")
+            if not df.empty:
+                st.table(df)
+            else:
+                st.write("No data found for the query.")
